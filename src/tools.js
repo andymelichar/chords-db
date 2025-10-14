@@ -92,9 +92,12 @@ const midiNumbers = [
 ];
 
 const midiNote = (note) => {
-  const name = note.slice(0, -1);
-  const octave = parseInt(note.slice(-1), 10);
-  return (octave + 1) * 12 + midiNumbers.indexOf(name);
+  const lastChar = note.slice(-1);
+  const hasOctave = !isNaN(parseInt(lastChar, 10));
+  const name = (hasOctave ? note.slice(0, -1) : note).replace('sharp', '#');
+  const octave = hasOctave ? parseInt(lastChar, 10) : 4; // Usa a 4ª oitava como padrão
+  const index = midiNumbers.indexOf(name);
+  return index < 0 ? -1 : (octave + 1) * 12 + index;
 };
 
 const string2midi = (fret, string, tuning) =>
