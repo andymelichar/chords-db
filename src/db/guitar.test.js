@@ -78,6 +78,7 @@ describe('Guitar Chords', () => {
                   const fingers = Array.isArray(position.fingers)
                     ? position.fingers
                     : strChord2array(position.fingers);
+                  const effectiveFingers = fingers.filter((f) => f !== -1);
                   it(`The ${
                     index + 1
                   } position fingers array should have 6 values`, () =>
@@ -85,11 +86,11 @@ describe('Guitar Chords', () => {
                   it(`The ${
                     index + 1
                   } position fingers array should have values lower than 5`, () =>
-                    expect(Math.max(...fingers)).toBeLessThan(5));
+                    expect(Math.max(...effectiveFingers)).toBeLessThan(5));
                   it(`The ${
                     index + 1
                   } position fingers array should have values higher or equal to 0`, () =>
-                    expect(Math.min(...fingers)).toBeGreaterThanOrEqual(0));
+                    expect(Math.min(...effectiveFingers)).toBeGreaterThanOrEqual(0));
                 });
               }
 

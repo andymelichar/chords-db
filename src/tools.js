@@ -23,17 +23,23 @@ const processFrets = (frets, baseFret) =>
 
 const processFingers = (fingers) => (fingers ? processString(fingers) : []);
 
-const processPosition = (position, tuning) => {
-  const frets = processString(position.frets);
-  const baseFret = processbaseFret(frets);
+const processPosition = (position, tuning, isPiano) => {
+  if (isPiano) {
+    Object.assign(position, {
+      midi: notes2midi(position.frets),
+    });
+  } else {
+    const frets = processString(position.frets);
+    const baseFret = processbaseFret(frets);
 
-  Object.assign(position, {
-    baseFret: processbaseFret(frets),
-    barres: processBarres(position.barres, baseFret),
-    fingers: processFingers(position.fingers),
-    frets: processFrets(frets, baseFret),
-    midi: chord2midi(frets, tuning),
-  });
+    Object.assign(position, {
+      baseFret: processbaseFret(frets),
+      barres: processBarres(position.barres, baseFret),
+      fingers: processFingers(position.fingers),
+      frets: processFrets(frets, baseFret),
+      midi: chord2midi(frets, tuning),
+    });
+  }
 };
 
 export const unique = (arr) =>
@@ -50,24 +56,24 @@ export const numberOfBarres = (str) =>
     )
     .reduce((last, actual) => actual + last, 0);
 
-const processPositions = (positions, tuning) =>
-  positions.map((position) => processPosition(position, tuning));
+const processPositions = (positions, tuning, isPiano) =>
+  positions.map((position) => processPosition(position, tuning, isPiano));
 
-const processChord = (suffixes, tuning) =>
+const processChord = (suffixes, tuning, isPiano) =>
   suffixes.map((suffix) =>
-    Object.assign(suffix, processPositions(suffix.positions, tuning))
+    Object.assign(suffix, processPositions(suffix.positions, tuning, isPiano))
   );
 
-const processChords = (chords, tuning) =>
+const processChords = (chords, tuning, isPiano) =>
   Object.assign(
     ...Object.keys(chords).map((chord) =>
-      Object.assign({}, { [chord]: processChord(chords[chord], tuning) })
+      Object.assign({}, { [chord]: processChord(chords[chord], tuning, isPiano) })
     )
   );
 
 export const generate = (instrument, tuning = 'standard') =>
   Object.assign(instrument, {
-    chords: processChords(instrument.chords, instrument.tunings[tuning]),
+    chords: processChords(instrument.chords, instrument.tunings[tuning], instrument.main.name === 'piano'),
   });
 
 const midiNumbers = [
@@ -85,8 +91,14 @@ const midiNumbers = [
   'B',
 ];
 
-const midiNote = (note) =>
-  (parseInt(note[1], 10) + 1) * 12 + midiNumbers.indexOf(note[0]);
+const midiNote = (note) => {
+  const lastChar = note.slice(-1);
+  const hasOctave = !isNaN(parseInt(lastChar, 10));
+  const name = (hasOctave ? note.slice(0, -1) : note).replace('sharp', '#');
+  const octave = hasOctave ? parseInt(lastChar, 10) : 4; // Usa a 4ª oitava como padrão
+  const index = midiNumbers.indexOf(name);
+  return index < 0 ? -1 : (octave + 1) * 12 + index;
+};
 
 const string2midi = (fret, string, tuning) =>
   fret >= 0 ? midiNote(tuning[string]) + fret : -1;
@@ -95,5 +107,8 @@ export const chord2midi = (frets, tuning) =>
   frets
     .map((fret, string) => string2midi(fret, string, tuning))
     .filter((note) => note > 0);
+
+export const notes2midi = (notes) =>
+  notes.map((note) => midiNote(note)).filter((note) => note > 0);
 
 export const getNoteFromMidiNumber = (number) => midiNumbers[number % 12];
