@@ -1,8 +1,16 @@
+## 0.6.0 (May 20, 2024)
+
+### Instruments
+* Added Piano as a new instrument with all its chords.
+* Refactored build scripts to support different instrument types (stringed vs. keyboard).
+
 ## 0.5.1 (Nov 2, 2019)
 * Renamed the slash chords
+
 ## 0.5.0 (Oct 27, 2019)
 * Added a lot of new guitar chords thanks to @szaza
 * Fixed some typos
+
 ## 0.4.3 (Jul 20, 2018)
 * Renamed "ukelele" to "ukulele"
 * Updated libraries
